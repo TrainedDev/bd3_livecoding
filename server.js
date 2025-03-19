@@ -31,18 +31,28 @@ const tasks = [
 ];
 
 //fetch task by name
-app.get("/projects/:name/tasks", (req, res) => {
+app.get("/users/:name/tasks", (req, res) => {
     try {
         const { name } = req.params;
 
         if (!name) return res.status(400).json("required details not found");
 
-        const fetchTask = tasks.find(ele => ele.project === name);
+        const fetchTask = tasks.filter(ele => ele.assignedTo === name);
 
         res.status(200).json({ data: fetchTask });
 
     } catch (error) {
         res.status(500).json({ msg: "failed to fetch tasks", Error: error.message })
+    }
+});
+
+// fetch pending tasks
+app.get("/tasks/pending", async (req, res) => {
+    try {
+        const fetchPendingTask = tasks.filter(ele => ele.status === "open");
+        res.status(200).json({ msg: "successfully fetched pending tasks", data: fetchPendingTask });
+    } catch (error) {
+        res.status(500).json({ msg: "failed to get pending tasks", Error: error.message })
     }
 });
 
@@ -55,6 +65,23 @@ app.get("/tasks/sort/by-priority", async (req, res) => {
         res.status(500).json({ msg: "failed to get sorted tasks by priority", Error: error.message })
     }
 });
+
+//update task status
+app.post("/tasks/:id/status", (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { status } = req.body;
+
+        if(!id || !status) return res.status(400).json("required details not found");
+
+        const updatedTask = tasks.filter(ele => ele.id === id ? ele.status = status : tasks);
+
+        res.status(200).json({ msg: "status successfully updated", data: updatedTask });
+
+    } catch (error) {
+        res.status(500).json({ msg: "failed to update task", Error: error.message })
+    }
+})
 
 const isIdUnique = (id) => {
     return !tasks.some(ele => ele.id === id)
